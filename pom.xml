@@ -37,11 +37,6 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>fr.bmartel</groupId>
-            <artifactId>opc</artifactId>
-            <version>1.08</version>
-        </dependency>
-        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.2.3</version>
