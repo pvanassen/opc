@@ -155,9 +155,9 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree):AutoC
 
     override fun close() {
         try {
-            output!!.close()
+            output?.close()
         } catch (e: Exception) {
-            e.printStackTrace()
+
         }
         finally {
             output = null
@@ -168,7 +168,7 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree):AutoC
                 socket.close()
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+
         }
     }
 
