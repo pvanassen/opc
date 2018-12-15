@@ -1,11 +1,13 @@
 package nl.pvanassen.opc
 
+import org.junit.Ignore
 import org.junit.Test
 import java.lang.System.out
 
 class Opc8x60Test {
 
     @Test
+    @Ignore("Enable for local testing")
     fun test8x60() {
         val opc = Opc.builder(System.getenv().get("fadecandy-server")!!, 7890)
                 .addDevice()
