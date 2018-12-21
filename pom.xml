@@ -94,6 +94,12 @@
             <version>1.6.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>fr.bmartel</groupId>
+            <artifactId>opc</artifactId>
+            <version>1.08</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

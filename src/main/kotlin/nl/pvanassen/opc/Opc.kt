@@ -16,27 +16,23 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree):AutoC
 
     private val validateConnectionLock = ReentrantLock()
 
-    private val socket = Socket()
-
     private val packetData: ByteArray
 
+    private val address = InetSocketAddress(settings.hostname, settings.port)
+    private val soConnTimeout = settings.soConnTimeout
+
+    private var socket:Socket? = null
     private var output:OutputStream? = null
     private var firmwareConfig: Byte = 0
-
-    private val address = InetSocketAddress(settings.hostname, settings.port)
-    private val soConnTimeout = settings.soConnTimeout;
 
     init {
         val numberOfBytes = 3 * settings.numberOfPixels
         val packetLen = 4 + numberOfBytes
         this.packetData = ByteArray(packetLen)
-        packetData[0] = 0
-        this.packetData[1] = 0
+        packetData[0] = 0   // Channel 0
+        this.packetData[1] = 0 // Command (set pixel)
         this.packetData[2] = (numberOfBytes shr 8).toByte()
         this.packetData[3] = (numberOfBytes and 255).toByte()
-
-        this.socket.soTimeout = settings.soTimeout
-        this.socket.reuseAddress = settings.reuseAddress
     }
 
     fun setColorCorrection(gamma:Float, red:Float, green:Float, blue:Float):Int {
@@ -88,24 +84,27 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree):AutoC
     }
 
     private fun ensureOpenConnection() {
-        if (this.output != null && socket.isConnected) {
+        if (isConnectionOpen()) {
             return
         }
         try {
             validateConnectionLock.withLock {
-                this.socket.connect(address, soConnTimeout)
-                this.socket.tcpNoDelay = true
-                this.output = this.socket.getOutputStream()
+                val socket = Socket()
+                socket.soTimeout = settings.soTimeout
+                socket.reuseAddress = true // settings.reuseAddress
+                socket.connect(address, soConnTimeout)
+                socket.tcpNoDelay = true
+                this.output = socket.getOutputStream()
+                this.socket = socket
             }
             this.sendFirmwareConfigPacket()
         }
         catch (e: Exception) {
             settings.errorListeners.forEach { it.accept(e) }
-            close()
         }
     }
 
-    private fun isConnectionOpen():Boolean = output != null && socket.isConnected
+    private fun isConnectionOpen():Boolean = output != null
 
     private fun writeData(packetData: ByteArray): Int {
         if (packetData.isEmpty()) {
@@ -164,9 +163,7 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree):AutoC
         }
 
         try {
-            if (!socket.isClosed) {
-                socket.close()
-            }
+            socket!!.close()
         } catch (e: Exception) {
 
         }

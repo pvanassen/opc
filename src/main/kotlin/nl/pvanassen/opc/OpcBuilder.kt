@@ -13,20 +13,24 @@ class OpcBuilder internal constructor(private val hostname:String, private val p
     private var reuseAddress = false
     private var errorListeners:MutableList<Consumer<Exception>> = LinkedList()
 
-    fun setSoTimeout(soTimeout: Int) {
+    fun setSoTimeout(soTimeout: Int): OpcBuilder {
         this.soTimeout = soTimeout
+        return this
     }
 
-    fun setSoConTimeout(soConnTimeout: Int) {
+    fun setSoConTimeout(soConnTimeout: Int): OpcBuilder {
         this.soConnTimeout = soConnTimeout
+        return this
     }
 
-    fun addErrorListener(listener: Consumer<Exception>) {
+    fun addErrorListener(listener: Consumer<Exception>): OpcBuilder {
         this.errorListeners.add(listener)
+        return this
     }
 
-    fun setReuseAddress(reuseAddress: Boolean) {
+    fun setReuseAddress(reuseAddress: Boolean): OpcBuilder {
         this.reuseAddress = reuseAddress
+        return this
     }
 
     fun addDevice():OpcDeviceBuilder {
