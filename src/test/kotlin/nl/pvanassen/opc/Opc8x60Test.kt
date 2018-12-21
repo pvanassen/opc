@@ -4,6 +4,7 @@ import fr.bmartel.opc.OpcClient
 import fr.bmartel.opc.PixelStrip
 import org.junit.Ignore
 import org.junit.Test
+import org.junit.jupiter.api.Disabled
 import java.lang.System.out
 import java.util.*
 
@@ -11,6 +12,7 @@ class Opc8x60Test {
 
     @Test
     @Ignore("Enable for local testing")
+    @Disabled("Requires local setup")
     fun test8x60() {
         val opc = Opc.builder(System.getenv().get("fadecandy-server")!!, 7890)
                 .addDevice()
@@ -56,6 +58,7 @@ class Opc8x60Test {
 
     @Test
     @Ignore("Enable for local testing")
+    @Disabled("Requires local setup")
     fun testOldOpc8x60() {
         val pixelStrips:MutableList<PixelStrip> = LinkedList()
 
