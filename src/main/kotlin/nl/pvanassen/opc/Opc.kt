@@ -8,7 +8,7 @@ import kotlin.concurrent.withLock
 import kotlin.experimental.and
 import kotlin.experimental.or
 
-class Opc(private val settings: OpcSettings, private val opcTree: OpcTree):AutoCloseable{
+class Opc(private val settings: OpcSettings, private val opcTree: OpcTree) : AutoCloseable {
     companion object {
         @JvmStatic
         fun builder(hostname: String, port: Int): OpcBuilder = OpcBuilder(hostname, port)
@@ -21,8 +21,8 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree):AutoC
     private val address = InetSocketAddress(settings.hostname, settings.port)
     private val soConnTimeout = settings.soConnTimeout
 
-    private var socket:Socket? = null
-    private var output:OutputStream? = null
+    private var socket: Socket? = null
+    private var output: OutputStream? = null
     private var firmwareConfig: Byte = 0
 
     init {
@@ -35,7 +35,7 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree):AutoC
         this.packetData[3] = (numberOfBytes and 255).toByte()
     }
 
-    fun setColorCorrection(gamma:Float, red:Float, green:Float, blue:Float):Int {
+    fun setColorCorrection(gamma: Float, red: Float, green: Float, blue: Float): Int {
         val content = "{ \"gamma\": $gamma, \"whitepoint\": [$red,$green,$blue]}".toByteArray()
         val packetLen = content.size + 4
         val header = byteArrayOf(0, -1, (packetLen shr 8).toByte(), (packetLen and 255).toByte(), 0, 1, 0, 1)
@@ -98,13 +98,12 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree):AutoC
                 this.socket = socket
             }
             this.sendFirmwareConfigPacket()
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             settings.errorListeners.forEach { it.accept(e) }
         }
     }
 
-    private fun isConnectionOpen():Boolean = output != null
+    private fun isConnectionOpen(): Boolean = output != null
 
     private fun writeData(packetData: ByteArray): Int {
         if (packetData.isEmpty()) {
@@ -118,8 +117,7 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree):AutoC
             output!!.write(packetData)
             output!!.flush()
             0
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             settings.errorListeners.forEach { it.accept(e) }
             close()
             -1
@@ -133,7 +131,7 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree):AutoC
         packetData[offset + 2] = color.toByte()
     }
 
-    fun setPixelColor(strip:Int, pixel: Int, color: Int) {
+    fun setPixelColor(strip: Int, pixel: Int, color: Int) {
         setPixelColor(opcTree.getPixelNumber(strip, pixel), color)
     }
 
@@ -157,8 +155,7 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree):AutoC
             output?.close()
         } catch (e: Exception) {
 
-        }
-        finally {
+        } finally {
             output = null
         }
 

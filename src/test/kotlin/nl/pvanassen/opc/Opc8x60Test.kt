@@ -2,53 +2,50 @@ package nl.pvanassen.opc
 
 import fr.bmartel.opc.OpcClient
 import fr.bmartel.opc.PixelStrip
-import org.junit.Ignore
-import org.junit.Test
 import org.junit.jupiter.api.Disabled
-import java.lang.System.out
+import org.junit.jupiter.api.Test
 import java.util.*
 
 class Opc8x60Test {
 
     @Test
-    @Ignore("Enable for local testing")
     @Disabled("Requires local setup")
     fun test8x60() {
         val opc = Opc.builder(System.getenv().get("fadecandy-server")!!, 7890)
-                .addDevice()
-                    .addPixelStrip(20)
-                    .addPixelStrip(20)
-                    .addPixelStrip(20)
-                    .addPixelStrip(20)
-                    .addPixelStrip(20)
-                    .addPixelStrip(20)
-                    .addPixelStrip(20)
-                    .addPixelStrip(20)
-                .createDevice()
-                .addDevice()
-                    .addPixelStrip(20)
-                    .addPixelStrip(20)
-                    .addPixelStrip(20)
-                    .addPixelStrip(20)
-                    .addPixelStrip(20)
-                    .addPixelStrip(20)
-                    .addPixelStrip(20)
-                    .addPixelStrip(20)
-                .createDevice()
+            .addDevice()
+            .addPixelStrip(20)
+            .addPixelStrip(20)
+            .addPixelStrip(20)
+            .addPixelStrip(20)
+            .addPixelStrip(20)
+            .addPixelStrip(20)
+            .addPixelStrip(20)
+            .addPixelStrip(20)
+            .createDevice()
+            .addDevice()
+            .addPixelStrip(20)
+            .addPixelStrip(20)
+            .addPixelStrip(20)
+            .addPixelStrip(20)
+            .addPixelStrip(20)
+            .addPixelStrip(20)
+            .addPixelStrip(20)
+            .addPixelStrip(20)
+            .createDevice()
             .build()
         opc.clear()
         opc.setColorCorrection(1.8f, .2f, .2f, .2f)
         opc.flush()
 
-        (0 until 8).forEach {strip ->
+        (0 until 8).forEach { strip ->
             (0 until strip + 1).forEach {
-                out.println("Strip: $strip, pixel: ${2 + it}")
+                println("Strip: $strip, pixel: ${2 + it}")
                 opc.setPixelColor(strip, 2 + it, 255)
             }
         }
-        (8 until 16).forEach {strip ->
+        (8 until 16).forEach { strip ->
             (0 until strip + 1 - 8).forEach {
-                out.println("Strip: $strip, pixel: ${2 + it}")
+                println("Strip: $strip, pixel: ${2 + it}")
                 opc.setPixelColor(strip, 2 + it, 255 shl 8)
             }
         }
@@ -57,12 +54,11 @@ class Opc8x60Test {
 
 
     @Test
-    @Ignore("Enable for local testing")
     @Disabled("Requires local setup")
     fun testOldOpc8x60() {
-        val pixelStrips:MutableList<PixelStrip> = LinkedList()
+        val pixelStrips: MutableList<PixelStrip> = LinkedList()
 
-        val opc = OpcClient(System.getenv().get("fadecandy-server")!!, 7890)
+        val opc = OpcClient(System.getenv()["fadecandy-server"]!!, 7890)
         val device1 = opc.addDevice()
         pixelStrips.add(device1!!.addPixelStrip(0, 20))
         pixelStrips.add(device1.addPixelStrip(1, 20))
@@ -97,7 +93,6 @@ class Opc8x60Test {
 //        }
         opc.show()
     }
-
 
 
 }
