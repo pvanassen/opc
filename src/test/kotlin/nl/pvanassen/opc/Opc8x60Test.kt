@@ -6,10 +6,10 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.*
 
+@Disabled("Requires local setup")
 class Opc8x60Test {
 
     @Test
-    @Disabled("Requires local setup")
     fun test8x60() {
         val opc = Opc.builder(System.getenv()["fadecandy-server"]!!, 7890)
             .addPixelStrip(20)
@@ -50,7 +50,6 @@ class Opc8x60Test {
 
 
     @Test
-    @Disabled("Requires local setup")
     fun testOldOpc8x60() {
         val pixelStrips: MutableList<PixelStrip> = LinkedList()
 
