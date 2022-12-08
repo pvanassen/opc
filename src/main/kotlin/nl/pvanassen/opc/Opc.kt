@@ -124,8 +124,8 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree) : Aut
         }
     }
 
-    fun setPixelColor(opcPixel: Int, color: Int) {
-        val offset = 4 + opcPixel * 3
+    fun setPixelColor(pixel: Int, color: Int) {
+        val offset = 4 + pixel * 3
         packetData[offset] = (color shr 16).toByte()
         packetData[offset + 1] = (color shr 8).toByte()
         packetData[offset + 2] = color.toByte()

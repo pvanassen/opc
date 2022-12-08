@@ -11,8 +11,7 @@ class Opc8x60Test {
     @Test
     @Disabled("Requires local setup")
     fun test8x60() {
-        val opc = Opc.builder(System.getenv().get("fadecandy-server")!!, 7890)
-            .addDevice()
+        val opc = Opc.builder(System.getenv()["fadecandy-server"]!!, 7890)
             .addPixelStrip(20)
             .addPixelStrip(20)
             .addPixelStrip(20)
@@ -21,8 +20,6 @@ class Opc8x60Test {
             .addPixelStrip(20)
             .addPixelStrip(20)
             .addPixelStrip(20)
-            .createDevice()
-            .addDevice()
             .addPixelStrip(20)
             .addPixelStrip(20)
             .addPixelStrip(20)
@@ -31,7 +28,6 @@ class Opc8x60Test {
             .addPixelStrip(20)
             .addPixelStrip(20)
             .addPixelStrip(20)
-            .createDevice()
             .build()
         opc.clear()
         opc.setColorCorrection(1.8f, .2f, .2f, .2f)
