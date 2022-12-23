@@ -45,10 +45,10 @@ class OpcBuilder internal constructor(private val hostname: String, private val 
             OpcSettings(hostname, port, numberOfPixels, soTimeout, soConnTimeout, reuseAddress, errorListeners)
 
         val strip = AtomicInteger(0)
-        val opcTree =
-            OpcTree(pixelStrips.associate { Pair(strip.getAndIncrement(), it.pixelCount) })
+        val ledModel =
+            LedModel(pixelStrips.associate { Pair(strip.getAndIncrement(), it.pixelCount) })
 
-        return Opc(opcSettings, opcTree)
+        return Opc(opcSettings, ledModel)
     }
 
     private class PixelStripBuilder(val pixelCount: Int)

@@ -1,28 +1,24 @@
 package nl.pvanassen.opc
 
-import java.io.OutputStream
-import java.net.InetSocketAddress
-import java.net.Socket
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+import io.ktor.network.selector.*
+import io.ktor.network.sockets.*
+import io.ktor.utils.io.*
+import kotlinx.coroutines.Dispatchers
 import kotlin.experimental.and
 import kotlin.experimental.or
 
-class Opc(private val settings: OpcSettings, private val opcTree: OpcTree) : AutoCloseable {
+class Opc(private val settings: OpcSettings, val ledModel: LedModel) : AutoCloseable {
     companion object {
         @JvmStatic
         fun builder(hostname: String, port: Int): OpcBuilder = OpcBuilder(hostname, port)
     }
 
-    private val validateConnectionLock = ReentrantLock()
-
     private val packetData: ByteArray
 
     private val address = InetSocketAddress(settings.hostname, settings.port)
-    private val soConnTimeout = settings.soConnTimeout
 
     private var socket: Socket? = null
-    private var output: OutputStream? = null
+    private var channel: ByteWriteChannel? = null
     private var firmwareConfig: Byte = 0
 
     init {
@@ -35,7 +31,7 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree) : Aut
         this.packetData[3] = (numberOfBytes and 255).toByte()
     }
 
-    fun setColorCorrection(gamma: Float, red: Float, green: Float, blue: Float): Int {
+    suspend fun setColorCorrection(gamma: Float, red: Float, green: Float, blue: Float): Int {
         val content = "{ \"gamma\": $gamma, \"whitepoint\": [$red,$green,$blue]}".toByteArray()
         val packetLen = content.size + 4
         val header = byteArrayOf(0, -1, (packetLen shr 8).toByte(), (packetLen and 255).toByte(), 0, 1, 0, 1)
@@ -49,7 +45,7 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree) : Aut
         return writeData(content)
     }
 
-    fun setDithering(enabled: Boolean) {
+    suspend fun setDithering(enabled: Boolean) {
         firmwareConfig = if (enabled) {
             firmwareConfig and -2
         } else {
@@ -59,7 +55,7 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree) : Aut
         this.sendFirmwareConfigPacket()
     }
 
-    fun setInterpolation(enabled: Boolean) {
+    suspend fun setInterpolation(enabled: Boolean) {
         firmwareConfig = if (enabled) {
             firmwareConfig and -3
         } else {
@@ -69,7 +65,7 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree) : Aut
         this.sendFirmwareConfigPacket()
     }
 
-    private fun sendFirmwareConfigPacket() {
+    private suspend fun sendFirmwareConfigPacket() {
         val packet = ByteArray(9)
         packet[0] = 0
         packet[1] = -1
@@ -83,29 +79,22 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree) : Aut
         writeData(packet)
     }
 
-    private fun ensureOpenConnection() {
+    private suspend fun ensureOpenConnection() {
         if (isConnectionOpen()) {
             return
         }
         try {
-            validateConnectionLock.withLock {
-                val socket = Socket()
-                socket.soTimeout = settings.soTimeout
-                socket.reuseAddress = true // settings.reuseAddress
-                socket.connect(address, soConnTimeout)
-                socket.tcpNoDelay = true
-                this.output = socket.getOutputStream()
-                this.socket = socket
-            }
+            socket = aSocket(SelectorManager(Dispatchers.IO)).tcp().connect(address)
+            channel = socket!!.openWriteChannel(autoFlush = false)
             this.sendFirmwareConfigPacket()
         } catch (e: Exception) {
             settings.errorListeners.forEach { it.accept(e) }
         }
     }
 
-    private fun isConnectionOpen(): Boolean = output != null
+    private fun isConnectionOpen(): Boolean = channel != null
 
-    private fun writeData(packetData: ByteArray): Int {
+    private suspend fun writeData(packetData: ByteArray): Int {
         if (packetData.isEmpty()) {
             return -1
         }
@@ -114,8 +103,8 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree) : Aut
             return -1
         }
         return try {
-            output!!.write(packetData)
-            output!!.flush()
+            channel!!.writeFully(packetData)
+            channel!!.flush()
             0
         } catch (e: Exception) {
             settings.errorListeners.forEach { it.accept(e) }
@@ -132,10 +121,10 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree) : Aut
     }
 
     fun setPixelColor(strip: Int, pixel: Int, color: Int) {
-        setPixelColor(opcTree.getPixelNumber(strip, pixel), color)
+        setPixelColor(ledModel.getPixelNumber(strip, pixel), color)
     }
 
-    fun flush(): Int {
+    suspend fun flush(): Int {
         ensureOpenConnection()
         if (isConnectionOpen()) {
             return writeData(packetData)
@@ -152,17 +141,18 @@ class Opc(private val settings: OpcSettings, private val opcTree: OpcTree) : Aut
 
     override fun close() {
         try {
-            output?.close()
+            channel?.close()
         } catch (e: Exception) {
 
         } finally {
-            output = null
+            channel = null
         }
-
         try {
-            socket!!.close()
+            socket?.close()
         } catch (e: Exception) {
 
+        } finally {
+            socket = null
         }
     }
 
