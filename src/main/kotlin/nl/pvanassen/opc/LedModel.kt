@@ -4,10 +4,9 @@ class LedModel(private val tree: Map<Int, Int>) {
 
     private val pixelNumbers: Map<Int, Int>
 
-    val totalPixels: Int
+    val totalPixels: Int = tree.values.sum()
 
     init {
-        totalPixels = tree.values.sum()
         val pixelNumbers: MutableMap<Int, Int> = HashMap()
         tree.entries.indices.forEach { pos ->
             pixelNumbers[pos] = if (pos == 0) {

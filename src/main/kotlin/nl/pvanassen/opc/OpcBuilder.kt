@@ -6,8 +6,7 @@ import java.util.function.Consumer
 
 class OpcBuilder internal constructor(private val hostname: String, private val port: Int) {
 
-    private var soTimeout = 5000
-    private var soConnTimeout = 5000
+    private var soTimeout = 5000L
     private var reuseAddress = false
     private val errorListeners: MutableList<Consumer<Exception>> = LinkedList()
 
@@ -19,13 +18,8 @@ class OpcBuilder internal constructor(private val hostname: String, private val 
         return this
     }
 
-    fun setSoTimeout(soTimeout: Int): OpcBuilder {
+    fun setSoTimeout(soTimeout: Long): OpcBuilder {
         this.soTimeout = soTimeout
-        return this
-    }
-
-    fun setSoConTimeout(soConnTimeout: Int): OpcBuilder {
-        this.soConnTimeout = soConnTimeout
         return this
     }
 
@@ -42,7 +36,7 @@ class OpcBuilder internal constructor(private val hostname: String, private val 
     fun build(): Opc {
         val numberOfPixels = pixelStrips.sumOf { it.pixelCount }
         val opcSettings =
-            OpcSettings(hostname, port, numberOfPixels, soTimeout, soConnTimeout, reuseAddress, errorListeners)
+            OpcSettings(hostname, port, numberOfPixels, soTimeout, reuseAddress, errorListeners)
 
         val strip = AtomicInteger(0)
         val ledModel =

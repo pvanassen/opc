@@ -84,7 +84,13 @@ class Opc(private val settings: OpcSettings, val ledModel: LedModel) : AutoClose
             return
         }
         try {
-            socket = aSocket(SelectorManager(Dispatchers.IO)).tcp().connect(address)
+            socket = aSocket(SelectorManager(Dispatchers.IO))
+                .tcp()
+                .connect(address) {
+                    socketTimeout = settings.soTimeout
+                    reuseAddress = settings.reuseAddress
+                    noDelay = true
+                }
             channel = socket!!.openWriteChannel(autoFlush = false)
             this.sendFirmwareConfigPacket()
         } catch (e: Exception) {
